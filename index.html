@@ -469,10 +469,18 @@
       return "Kỳ tính tiền: tháng " + month + "/" + year;
     }
 
-    function formatReceiptPeriod(period) {
+    function formatNextReceiptPeriod(period) {
       if (!period || !period.includes("-")) return "";
-      const [year, month] = period.split("-");
-      return parseNumber(month) + "/" + year;
+      const [yearText, monthText] = period.split("-");
+      let year = parseNumber(yearText);
+      let month = parseNumber(monthText) + 1;
+
+      if (month > 12) {
+        month = 1;
+        year += 1;
+      }
+
+      return month + "/" + year;
     }
 
     function getSelectedPeriod() {
@@ -814,7 +822,7 @@
       const result = calculateRoom(room, currentData.config);
       els.receiptPreview.innerHTML = `
         <div class="receipt-title">
-          <span class="receipt-title-part">CHI PHÍ THÁNG ${formatReceiptPeriod(currentPeriod)}</span>
+          <span class="receipt-title-part">CHI PHÍ THÁNG ${formatNextReceiptPeriod(currentPeriod)}</span>
           <span class="receipt-title-part">PHÒNG ${room.roomId}</span>
         </div>
         ${receiptLine("Tiền phòng", result.roomCost)}
