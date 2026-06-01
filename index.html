@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quản lý chi phí phòng trọ</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+  <style>
+    :root {
+      --page-bg: linear-gradient(135deg, #f4efe6 0%, #e7f1ee 100%);
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --card-border: rgba(28, 68, 58, 0.08);
+      --text-main: #20322d;
+      --accent: #1e6a57;
+      --accent-soft: #d8ede6;
+      --warn-bg: #fff4d6;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--page-bg);
+      color: var(--text-main);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .page-shell {
+      max-width: 1500px;
+    }
+
+    .hero-card,
+    .panel-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      box-shadow: 0 18px 50px rgba(26, 58, 49, 0.08);
+      backdrop-filter: blur(6px);
+    }
+
+    .hero-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -80px -120px auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(30, 106, 87, 0.18), rgba(30, 106, 87, 0));
+    }
+
+    .stat-pill {
+      background: var(--accent-soft);
+      border-radius: 999px;
+      padding: 0.65rem 1rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .table thead th {
+      white-space: nowrap;
+      vertical-align: middle;
+      background: #eff7f4;
+      font-size: 0.88rem;
+    }
+
+    .table tbody td {
+      vertical-align: middle;
+    }
+
+    .room-input {
+      min-width: 98px;
+    }
+
+    #periodInput {
+      cursor: pointer;
+    }
+
+    .calc-cell {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .summary-box {
+      background: #f7fbfa;
+      border: 1px solid rgba(30, 106, 87, 0.08);
+      border-radius: 18px;
+      padding: 1rem;
+      height: 100%;
+    }
+
+    .summary-label {
+      color: #57716a;
+      font-size: 0.88rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .summary-value {
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+
+    .alert-inline {
+      background: var(--warn-bg);
+      border: 1px solid rgba(173, 126, 0, 0.15);
+      color: #6d5200;
+      border-radius: 14px;
+      padding: 0.9rem 1rem;
+    }
+
+    .receipt-preview {
+      background: #f6f4ee;
+      border: 2px solid #343a40;
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+      color: #202020;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      margin: 0 auto;
+      max-width: 560px;
+      padding: 1.4rem 1.25rem;
+    }
+
+    .receipt-title {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      font-size: 1.35rem;
+      font-weight: 800;
+      gap: 0.35rem 1.1rem;
+      justify-content: center;
+      letter-spacing: 0.02em;
+      margin-bottom: 1.4rem;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .receipt-title-part {
+      white-space: nowrap;
+    }
+
+    .receipt-line {
+      align-items: baseline;
+      display: flex;
+      font-size: 1.18rem;
+      gap: 0.35rem;
+      margin-bottom: 1.05rem;
+    }
+
+    .receipt-line-label {
+      flex-shrink: 0;
+    }
+
+    .receipt-dots {
+      border-bottom: 2px dotted #333;
+      flex: 1;
+      min-width: 60px;
+      text-align: center;
+      transform: translateY(-0.2rem);
+    }
+
+    .receipt-line-meta {
+      background: #f6f4ee;
+      display: inline-block;
+      padding: 0 0.35rem;
+      transform: translateY(0.35rem);
+    }
+
+    .receipt-currency {
+      font-weight: 700;
+      min-width: 42px;
+      text-align: right;
+    }
+
+    .receipt-note {
+      font-size: 1.12rem;
+      margin-top: 1.6rem;
+    }
+
+    .receipt-note-line {
+      border-bottom: 2px dotted #333;
+      height: 2.4rem;
+    }
+
+    .receipt-footer {
+      align-items: baseline;
+      display: flex;
+      font-size: 1.08rem;
+      gap: 0.55rem;
+      margin-top: 1.8rem;
+    }
+
+    @media (max-width: 992px) {
+      .room-input {
+        min-width: 88px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-4 py-lg-5 page-shell">
+    <div class="hero-card p-4 p-lg-5 mb-4">
+      <div class="row g-4 align-items-center">
+        <div class="col-lg-7">
+          <p class="text-uppercase small fw-semibold text-success mb-2">Tool tính tiền trọ</p>
+          <h1 class="display-6 fw-bold mb-3">Tính chi phí phòng trọ theo tháng</h1>
+          <p class="mb-0 text-secondary">
+            Chọn tháng, nhập chỉ số mới điện nước, hệ thống sẽ tự lấy chỉ số cũ từ lịch sử
+            và lưu dữ liệu vào Local Storage để tra cứu lại sau này.
+          </p>
+        </div>
+        <div class="col-lg-5">
+          <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+            <div class="stat-pill">5 phòng mặc định PT-01 đến PT-05</div>
+            <div class="stat-pill">Phòng 0 người sẽ không tính phí</div>
+            <div class="stat-pill">Dữ liệu lưu trên trình duyệt</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="messageBox" class="mb-4"></div>
+
+    <div class="panel-card p-4 mb-4">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4 col-lg-3">
+          <label for="periodInput" class="form-label fw-semibold">Chọn tháng</label>
+          <input type="month" id="periodInput" class="form-control">
+        </div>
+        <div class="col-md-8 col-lg-9">
+          <div class="d-flex flex-wrap gap-2">
+            <button id="resetPeriodBtn" class="btn btn-outline-secondary">Khởi tạo lại từ mặc định</button>
+            <button id="exportMonthBtn" class="btn btn-outline-primary">Xuất dữ liệu</button>
+            <button id="importMonthBtn" class="btn btn-outline-primary">Nhập dữ liệu</button>
+            <input type="file" id="importMonthFile" class="d-none" accept="application/json,.json">
+            <span id="autosaveStatus" class="align-self-center text-secondary small">Tự động tải và lưu dữ liệu</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-xl-4">
+        <div class="panel-card p-4 h-100">
+          <div class="section-title">Cấu hình tháng hiện tại</div>
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label for="baseRoomPrice" class="form-label">Tiền phòng cơ bản</label>
+              <input type="text" inputmode="numeric" id="baseRoomPrice" class="form-control config-input numeric-input">
+            </div>
+            <div class="col-sm-6">
+              <label for="trashFee" class="form-label">Tiền rác / phòng</label>
+              <input type="text" inputmode="numeric" id="trashFee" class="form-control config-input numeric-input">
+            </div>
+            <div class="col-sm-6">
+              <label for="electricPrice" class="form-label">Đơn giá điện / kWh</label>
+              <input type="text" inputmode="numeric" id="electricPrice" class="form-control config-input numeric-input">
+            </div>
+            <div class="col-sm-6">
+              <label for="waterQuotaPerPerson" class="form-label">Định mức nước / người</label>
+              <input type="text" inputmode="numeric" id="waterQuotaPerPerson" class="form-control config-input numeric-input">
+            </div>
+            <div class="col-sm-6">
+              <label for="waterPriceNormal" class="form-label">Giá nước trong định mức</label>
+              <input type="text" inputmode="numeric" id="waterPriceNormal" class="form-control config-input numeric-input">
+            </div>
+            <div class="col-sm-6">
+              <label for="waterPriceExcess" class="form-label">Giá nước vượt định mức</label>
+              <input type="text" inputmode="numeric" id="waterPriceExcess" class="form-control config-input numeric-input">
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="section-title mb-3">Số người mặc định từng phòng</div>
+          <div id="defaultPeopleEditor" class="row g-3"></div>
+
+          <div class="alert-inline mt-4 small">
+            Khi lưu cấu hình mặc định, các tháng mới tạo sau này sẽ lấy giá trị này làm dữ liệu ban đầu.
+          </div>
+          <button id="saveDefaultsBtn" class="btn btn-outline-success w-100 mt-3">Lưu cấu hình mặc định</button>
+        </div>
+      </div>
+
+      <div class="col-xl-8">
+        <div class="panel-card p-4">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+              <div class="section-title mb-1">Bảng tính chi phí từng phòng</div>
+              <div class="text-secondary small">Chỉ số cũ được tự động lấy từ tháng gần nhất đã lưu.</div>
+            </div>
+            <div class="text-secondary small" id="periodCaption"></div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+              <thead>
+                <tr>
+                  <th>Phòng</th>
+                  <th>Số người</th>
+                  <th>Điện cũ</th>
+                  <th>Điện mới</th>
+                  <th>kWh</th>
+                  <th>Tiền điện</th>
+                  <th>Nước cũ</th>
+                  <th>Nước mới</th>
+                  <th>m3</th>
+                  <th>Nước vượt</th>
+                  <th>Tiền nước</th>
+                  <th>Tiền vượt</th>
+                  <th>Tiền phòng</th>
+                  <th>Tiền rác</th>
+                  <th>Tổng tiền</th>
+                </tr>
+              </thead>
+              <tbody id="roomsTableBody"></tbody>
+            </table>
+          </div>
+          <div class="d-flex justify-content-end mt-3">
+            <button id="finalizeMonthBtn" type="button" class="btn btn-success me-2">Hoàn tất tháng này</button>
+            <button
+              id="openReceiptModalBtn"
+              type="button"
+              class="btn btn-outline-primary"
+              data-bs-toggle="modal"
+              data-bs-target="#receiptModal"
+            >
+              Mở mẫu phiếu chi phí
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mt-1">
+      <div class="col-md-4">
+        <div class="summary-box">
+          <div class="summary-label">Tổng điện tiêu thụ</div>
+          <div class="summary-value" id="totalElectricUsage">0 kWh</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="summary-box">
+          <div class="summary-label">Tổng nước tiêu thụ</div>
+          <div class="summary-value" id="totalWaterUsage">0 m3</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="summary-box">
+          <div class="summary-label">Tổng doanh thu tháng</div>
+          <div class="summary-value" id="grandTotal">0 d</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="receiptModalLabel">Mẫu phiếu chi phí</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3 align-items-end mb-4">
+            <div class="col-sm-6">
+              <label for="receiptRoomSelect" class="form-label">Chọn phòng</label>
+              <select id="receiptRoomSelect" class="form-select"></select>
+            </div>
+          </div>
+          <div id="receiptPreview" class="receipt-preview"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEYS = {
+      defaults: "rental_defaults",
+      monthlyData: "rental_monthly_data"
+    };
+
+    const ROOM_IDS = ["PT-01", "PT-02", "PT-03", "PT-04", "PT-05"];
+    const DEFAULTS_VERSION = "2026-06-user-defaults-v2";
+
+    const DEFAULTS_FALLBACK = {
+      version: DEFAULTS_VERSION,
+      baseRoomPrice: 2200000,
+      trashFee: 43000,
+      electricPrice: 4000,
+      waterQuotaPerPerson: 4,
+      waterPriceNormal: 12000,
+      waterPriceExcess: 15000,
+      rooms: [
+        { roomId: "PT-01", defaultPeople: 2 },
+        { roomId: "PT-02", defaultPeople: 2 },
+        { roomId: "PT-03", defaultPeople: 1 },
+        { roomId: "PT-04", defaultPeople: 1 },
+        { roomId: "PT-05", defaultPeople: 4 }
+      ]
+    };
+
+    let currentPeriod = "";
+    let currentData = null;
+    let autosaveTimer = null;
+
+    const els = {
+      periodInput: document.getElementById("periodInput"),
+      resetPeriodBtn: document.getElementById("resetPeriodBtn"),
+      finalizeMonthBtn: document.getElementById("finalizeMonthBtn"),
+      exportMonthBtn: document.getElementById("exportMonthBtn"),
+      importMonthBtn: document.getElementById("importMonthBtn"),
+      importMonthFile: document.getElementById("importMonthFile"),
+      saveDefaultsBtn: document.getElementById("saveDefaultsBtn"),
+      autosaveStatus: document.getElementById("autosaveStatus"),
+      messageBox: document.getElementById("messageBox"),
+      periodCaption: document.getElementById("periodCaption"),
+      roomsTableBody: document.getElementById("roomsTableBody"),
+      defaultPeopleEditor: document.getElementById("defaultPeopleEditor"),
+      totalElectricUsage: document.getElementById("totalElectricUsage"),
+      totalWaterUsage: document.getElementById("totalWaterUsage"),
+      grandTotal: document.getElementById("grandTotal"),
+      receiptModal: document.getElementById("receiptModal"),
+      receiptRoomSelect: document.getElementById("receiptRoomSelect"),
+      receiptPreview: document.getElementById("receiptPreview"),
+      baseRoomPrice: document.getElementById("baseRoomPrice"),
+      trashFee: document.getElementById("trashFee"),
+      electricPrice: document.getElementById("electricPrice"),
+      waterQuotaPerPerson: document.getElementById("waterQuotaPerPerson"),
+      waterPriceNormal: document.getElementById("waterPriceNormal"),
+      waterPriceExcess: document.getElementById("waterPriceExcess")
+    };
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat("vi-VN").format(value || 0) + " d";
+    }
+
+    function formatReceiptAmount(value) {
+      return new Intl.NumberFormat("vi-VN").format(Math.round(value || 0));
+    }
+
+    function formatPeriodLabel(period) {
+      if (!period || !period.includes("-")) return "";
+      const [year, month] = period.split("-");
+      return "Kỳ tính tiền: tháng " + month + "/" + year;
+    }
+
+    function formatReceiptPeriod(period) {
+      if (!period || !period.includes("-")) return "";
+      const [year, month] = period.split("-");
+      return parseNumber(month) + "/" + year;
+    }
+
+    function getSelectedPeriod() {
+      return els.periodInput.value;
+    }
+
+    function parseNumber(value) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function cloneData(data) {
+      return JSON.parse(JSON.stringify(data));
+    }
+
+    function getStoredJson(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function setStoredJson(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function normalizeDefaults(rawDefaults) {
+      const defaults = cloneData(DEFAULTS_FALLBACK);
+      if (!rawDefaults || typeof rawDefaults !== "object") return defaults;
+      if (rawDefaults.version !== DEFAULTS_VERSION) return defaults;
+
+      defaults.baseRoomPrice = parseNumber(rawDefaults.baseRoomPrice || defaults.baseRoomPrice);
+      defaults.trashFee = parseNumber(rawDefaults.trashFee || defaults.trashFee);
+      defaults.electricPrice = parseNumber(rawDefaults.electricPrice || defaults.electricPrice);
+      defaults.waterQuotaPerPerson = parseNumber(rawDefaults.waterQuotaPerPerson || defaults.waterQuotaPerPerson);
+      defaults.waterPriceNormal = parseNumber(rawDefaults.waterPriceNormal || defaults.waterPriceNormal);
+      defaults.waterPriceExcess = parseNumber(rawDefaults.waterPriceExcess || defaults.waterPriceExcess);
+
+      const roomMap = new Map();
+      (rawDefaults.rooms || []).forEach((room) => {
+        if (room && ROOM_IDS.includes(room.roomId)) {
+          roomMap.set(room.roomId, {
+            roomId: room.roomId,
+            defaultPeople: Math.max(0, parseNumber(room.defaultPeople))
+          });
+        }
+      });
+
+      defaults.rooms = ROOM_IDS.map((roomId) => roomMap.get(roomId) || { roomId, defaultPeople: 1 });
+      return defaults;
+    }
+
+    function ensureDefaults() {
+      const defaults = normalizeDefaults(getStoredJson(STORAGE_KEYS.defaults, null));
+      setStoredJson(STORAGE_KEYS.defaults, defaults);
+      return defaults;
+    }
+
+    function getMonthlyDataMap() {
+      return getStoredJson(STORAGE_KEYS.monthlyData, {});
+    }
+
+    function setMonthlyDataMap(data) {
+      setStoredJson(STORAGE_KEYS.monthlyData, data);
+    }
+
+    function createMonthDataFromDefaults(period, defaults) {
+      const history = getMonthlyDataMap();
+      return {
+        period,
+        isFinalized: false,
+        config: {
+          baseRoomPrice: defaults.baseRoomPrice,
+          trashFee: defaults.trashFee,
+          electricPrice: defaults.electricPrice,
+          waterQuotaPerPerson: defaults.waterQuotaPerPerson,
+          waterPriceNormal: defaults.waterPriceNormal,
+          waterPriceExcess: defaults.waterPriceExcess
+        },
+        rooms: ROOM_IDS.map((roomId) => {
+          const defaultRoom = defaults.rooms.find((room) => room.roomId === roomId) || { defaultPeople: 1 };
+          const previous = findPreviousRoomData(period, roomId, history);
+          return {
+            roomId,
+            people: parseNumber(defaultRoom.defaultPeople),
+            electricOld: previous ? parseNumber(previous.electricNew) : 0,
+            electricNew: previous ? parseNumber(previous.electricNew) : 0,
+            waterOld: previous ? parseNumber(previous.waterNew) : 0,
+            waterNew: previous ? parseNumber(previous.waterNew) : 0
+          };
+        })
+      };
+    }
+
+    function sortPeriods(periods) {
+      return periods.slice().sort((a, b) => a.localeCompare(b));
+    }
+
+    function findPreviousRoomData(targetPeriod, roomId, historyMap) {
+      const periods = sortPeriods(Object.keys(historyMap)).filter((period) => period < targetPeriod);
+      for (let index = periods.length - 1; index >= 0; index -= 1) {
+        const monthData = historyMap[periods[index]];
+        const room = (monthData.rooms || []).find((item) => item.roomId === roomId);
+        if (room) return room;
+      }
+      return null;
+    }
+
+    function normalizeMonthData(period, rawData) {
+      const defaults = ensureDefaults();
+      const baseData = createMonthDataFromDefaults(period, defaults);
+      if (!rawData || typeof rawData !== "object") return baseData;
+
+      const normalized = cloneData(baseData);
+      normalized.isFinalized = Boolean(rawData.isFinalized);
+      normalized.config.baseRoomPrice = parseNumber(rawData.config?.baseRoomPrice ?? normalized.config.baseRoomPrice);
+      normalized.config.trashFee = parseNumber(rawData.config?.trashFee ?? normalized.config.trashFee);
+      normalized.config.electricPrice = parseNumber(rawData.config?.electricPrice ?? normalized.config.electricPrice);
+      normalized.config.waterQuotaPerPerson = parseNumber(rawData.config?.waterQuotaPerPerson ?? normalized.config.waterQuotaPerPerson);
+      normalized.config.waterPriceNormal = parseNumber(rawData.config?.waterPriceNormal ?? normalized.config.waterPriceNormal);
+      normalized.config.waterPriceExcess = parseNumber(rawData.config?.waterPriceExcess ?? normalized.config.waterPriceExcess);
+
+      const roomMap = new Map();
+      (rawData.rooms || []).forEach((room) => {
+        if (room && ROOM_IDS.includes(room.roomId)) {
+          roomMap.set(room.roomId, {
+            roomId: room.roomId,
+            people: Math.max(0, parseNumber(room.people)),
+            electricOld: Math.max(0, parseNumber(room.electricOld)),
+            electricNew: Math.max(0, parseNumber(room.electricNew)),
+            waterOld: Math.max(0, parseNumber(room.waterOld)),
+            waterNew: Math.max(0, parseNumber(room.waterNew))
+          });
+        }
+      });
+
+      normalized.rooms = ROOM_IDS.map((roomId) => {
+        const fallbackRoom = normalized.rooms.find((room) => room.roomId === roomId);
+        return roomMap.get(roomId) || fallbackRoom;
+      });
+
+      return normalized;
+    }
+
+    function collectConfigFromForm() {
+      if (!currentData) return;
+      currentData.config.baseRoomPrice = Math.max(0, parseNumber(els.baseRoomPrice.value));
+      currentData.config.trashFee = Math.max(0, parseNumber(els.trashFee.value));
+      currentData.config.electricPrice = Math.max(0, parseNumber(els.electricPrice.value));
+      currentData.config.waterQuotaPerPerson = Math.max(0, parseNumber(els.waterQuotaPerPerson.value));
+      currentData.config.waterPriceNormal = Math.max(0, parseNumber(els.waterPriceNormal.value));
+      currentData.config.waterPriceExcess = Math.max(0, parseNumber(els.waterPriceExcess.value));
+    }
+
+    function renderDefaultPeopleEditor(defaults) {
+      els.defaultPeopleEditor.innerHTML = ROOM_IDS.map((roomId) => {
+        const room = defaults.rooms.find((item) => item.roomId === roomId) || { defaultPeople: 1 };
+        return `
+          <div class="col-sm-6">
+            <label class="form-label">${roomId}</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              class="form-control default-people-input numeric-input"
+              data-room-id="${roomId}"
+              value="${room.defaultPeople}"
+            >
+          </div>
+        `;
+      }).join("");
+    }
+
+    function fillConfigForm(config) {
+      els.baseRoomPrice.value = config.baseRoomPrice;
+      els.trashFee.value = config.trashFee;
+      els.electricPrice.value = config.electricPrice;
+      els.waterQuotaPerPerson.value = config.waterQuotaPerPerson;
+      els.waterPriceNormal.value = config.waterPriceNormal;
+      els.waterPriceExcess.value = config.waterPriceExcess;
+    }
+
+    function calculateRoom(room, config) {
+      const people = Math.max(0, parseNumber(room.people));
+      const electricOld = Math.max(0, parseNumber(room.electricOld));
+      const electricNew = Math.max(0, parseNumber(room.electricNew));
+      const waterOld = Math.max(0, parseNumber(room.waterOld));
+      const waterNew = Math.max(0, parseNumber(room.waterNew));
+
+      const electricUsage = Math.max(0, electricNew - electricOld);
+      const waterUsage = Math.max(0, waterNew - waterOld);
+      const hasInvalidElectric = electricNew < electricOld;
+      const hasInvalidWater = waterNew < waterOld;
+
+      if (people === 0) {
+        return {
+          people,
+          electricOld,
+          electricNew,
+          waterOld,
+          waterNew,
+          electricUsage: hasInvalidElectric ? 0 : electricUsage,
+          waterUsage: hasInvalidWater ? 0 : waterUsage,
+          waterExcessUsage: 0,
+          electricCost: 0,
+          waterCost: 0,
+          waterExcessCost: 0,
+          roomCost: 0,
+          trashCost: 0,
+          totalCost: 0,
+          hasInvalidElectric,
+          hasInvalidWater
+        };
+      }
+
+      const quota = people * parseNumber(config.waterQuotaPerPerson);
+      const inQuota = Math.min(waterUsage, quota);
+      const excess = Math.max(0, waterUsage - quota);
+      const electricCost = electricUsage * parseNumber(config.electricPrice);
+      const waterCost = (inQuota * parseNumber(config.waterPriceNormal)) + (excess * parseNumber(config.waterPriceExcess));
+      const waterExcessCost = excess * parseNumber(config.waterPriceExcess);
+      const roomCost = parseNumber(config.baseRoomPrice);
+      const trashCost = parseNumber(config.trashFee);
+
+      return {
+        people,
+        electricOld,
+        electricNew,
+        waterOld,
+        waterNew,
+        electricUsage: hasInvalidElectric ? 0 : electricUsage,
+        waterUsage: hasInvalidWater ? 0 : waterUsage,
+        waterExcessUsage: hasInvalidWater ? 0 : excess,
+        electricCost: hasInvalidElectric ? 0 : electricCost,
+        waterCost: hasInvalidWater ? 0 : waterCost,
+        waterExcessCost: hasInvalidWater ? 0 : waterExcessCost,
+        roomCost,
+        trashCost,
+        totalCost: roomCost + trashCost + (hasInvalidElectric ? 0 : electricCost) + (hasInvalidWater ? 0 : waterCost),
+        hasInvalidElectric,
+        hasInvalidWater
+      };
+    }
+
+    function renderRoomsTable() {
+      collectConfigFromForm();
+      const config = currentData.config;
+      let totalElectricUsage = 0;
+      let totalWaterUsage = 0;
+      let grandTotal = 0;
+
+      els.roomsTableBody.innerHTML = currentData.rooms.map((room) => {
+        const result = calculateRoom(room, config);
+        totalElectricUsage += result.electricUsage;
+        totalWaterUsage += result.waterUsage;
+        grandTotal += result.totalCost;
+
+        const errorText = [
+          result.hasInvalidElectric ? "Chỉ số điện mới phải lớn hơn hoặc bằng chỉ số cũ." : "",
+          result.hasInvalidWater ? "Chỉ số nước mới phải lớn hơn hoặc bằng chỉ số cũ." : ""
+        ].filter(Boolean).join(" ");
+
+        return `
+          <tr data-room-id="${room.roomId}">
+            <td class="fw-semibold">${room.roomId}</td>
+            <td><input type="text" inputmode="numeric" class="form-control room-input room-field numeric-input" data-field="people" value="${room.people}"></td>
+            <td><input type="text" inputmode="numeric" class="form-control room-input room-field old-reading-field numeric-input" data-field="electricOld" value="${room.electricOld}"></td>
+            <td><input type="text" inputmode="numeric" class="form-control room-input room-field numeric-input" data-field="electricNew" value="${room.electricNew}"></td>
+            <td class="calc-cell">${result.electricUsage}</td>
+            <td class="calc-cell">${formatCurrency(result.electricCost)}</td>
+            <td><input type="text" inputmode="numeric" class="form-control room-input room-field old-reading-field numeric-input" data-field="waterOld" value="${room.waterOld}"></td>
+            <td><input type="text" inputmode="numeric" class="form-control room-input room-field numeric-input" data-field="waterNew" value="${room.waterNew}"></td>
+            <td class="calc-cell">${result.waterUsage}</td>
+            <td class="calc-cell">${result.waterExcessUsage}</td>
+            <td class="calc-cell">${formatCurrency(result.waterCost)}</td>
+            <td class="calc-cell">${formatCurrency(result.waterExcessCost)}</td>
+            <td class="calc-cell">${formatCurrency(result.roomCost)}</td>
+            <td class="calc-cell">${formatCurrency(result.trashCost)}</td>
+            <td>
+              <div class="calc-cell">${formatCurrency(result.totalCost)}</div>
+              ${errorText ? `<div class="text-danger small mt-1">${errorText}</div>` : ""}
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      els.totalElectricUsage.textContent = totalElectricUsage + " kWh";
+      els.totalWaterUsage.textContent = totalWaterUsage + " m3";
+      els.grandTotal.textContent = formatCurrency(grandTotal);
+      updateFinalizedUi();
+    }
+
+    function renderReceiptRoomOptions() {
+      if (!currentData) return;
+      const currentValue = els.receiptRoomSelect.value || currentData.rooms[0]?.roomId || "";
+      els.receiptRoomSelect.innerHTML = currentData.rooms.map((room) => (
+        `<option value="${room.roomId}">${room.roomId}</option>`
+      )).join("");
+
+      if (currentData.rooms.some((room) => room.roomId === currentValue)) {
+        els.receiptRoomSelect.value = currentValue;
+      }
+    }
+
+    function receiptLine(label, value, meta = "") {
+      return `
+        <div class="receipt-line">
+          <span class="receipt-line-label">${label}:</span>
+          <span class="receipt-dots">${meta ? `<span class="receipt-line-meta">(${meta})</span>` : ""}</span>
+          <strong>${formatReceiptAmount(value)}</strong>
+          <span class="receipt-currency">VNĐ</span>
+        </div>
+      `;
+    }
+
+    function renderReceiptPreview() {
+      if (!currentData) return;
+      collectConfigFromForm();
+      const roomId = els.receiptRoomSelect.value || currentData.rooms[0]?.roomId;
+      const room = currentData.rooms.find((item) => item.roomId === roomId);
+
+      if (!room) {
+        els.receiptPreview.innerHTML = "<p class=\"mb-0\">Chưa có dữ liệu phòng.</p>";
+        return;
+      }
+
+      const result = calculateRoom(room, currentData.config);
+      els.receiptPreview.innerHTML = `
+        <div class="receipt-title">
+          <span class="receipt-title-part">CHI PHÍ THÁNG ${formatReceiptPeriod(currentPeriod)}</span>
+          <span class="receipt-title-part">PHÒNG ${room.roomId}</span>
+        </div>
+        ${receiptLine("Tiền phòng", result.roomCost)}
+        ${receiptLine("Tiền điện", result.electricCost, result.electricUsage + " kWh")}
+        ${receiptLine("Tiền nước", result.waterCost, result.waterUsage + " khối")}
+        ${receiptLine("Tiền rác", result.trashCost)}
+        ${receiptLine("Tổng", result.totalCost)}
+        <div class="receipt-note">
+          <div class="fw-semibold mb-3">Ghi chú:</div>
+          <div>- Thu tiền từ ngày 1→5 hằng tháng.</div>
+          <div class="receipt-note-line"></div>
+          <div class="receipt-note-line"></div>
+        </div>
+        <div class="receipt-footer">
+          <span class="receipt-dots"></span>
+          <span>Prepared by</span>
+          <span class="receipt-dots"></span>
+        </div>
+      `;
+    }
+
+    function renderReceiptModal() {
+      syncRoomsFromTable();
+      renderReceiptRoomOptions();
+      renderReceiptPreview();
+    }
+
+    function showMessage(message, type) {
+      els.messageBox.innerHTML = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      `;
+    }
+
+    function setAutosaveStatus(message) {
+      els.autosaveStatus.textContent = message;
+    }
+
+    function updateFinalizedUi() {
+      if (!currentData) return;
+      if (currentData.isFinalized) {
+        els.finalizeMonthBtn.textContent = "Mở lại tháng này";
+        els.finalizeMonthBtn.classList.remove("btn-success");
+        els.finalizeMonthBtn.classList.add("btn-warning");
+        els.finalizeMonthBtn.disabled = false;
+        els.resetPeriodBtn.disabled = true;
+        els.resetPeriodBtn.title = "Tháng đã hoàn tất nên không thể khởi tạo lại";
+      } else {
+        els.finalizeMonthBtn.textContent = "Hoàn tất tháng này";
+        els.finalizeMonthBtn.classList.remove("btn-warning");
+        els.finalizeMonthBtn.classList.add("btn-success");
+        els.finalizeMonthBtn.disabled = false;
+        els.resetPeriodBtn.disabled = false;
+        els.resetPeriodBtn.removeAttribute("title");
+      }
+    }
+
+    function syncRoomsFromTable() {
+      const rows = els.roomsTableBody.querySelectorAll("tr[data-room-id]");
+      rows.forEach((row) => {
+        const roomId = row.getAttribute("data-room-id");
+        const room = currentData.rooms.find((item) => item.roomId === roomId);
+        if (!room) return;
+        row.querySelectorAll(".room-field").forEach((input) => {
+          const field = input.getAttribute("data-field");
+          room[field] = Math.max(0, parseNumber(input.value));
+        });
+      });
+    }
+
+    function sanitizeNumericInput(input) {
+      input.value = input.value.replace(/[^\d]/g, "");
+    }
+
+    function keepNewReadingsAtLeastOld() {
+      currentData.rooms.forEach((room) => {
+        if (room.electricNew < room.electricOld) {
+          room.electricNew = room.electricOld;
+        }
+        if (room.waterNew < room.waterOld) {
+          room.waterNew = room.waterOld;
+        }
+      });
+    }
+
+    function hasInvalidReadings() {
+      return currentData.rooms.some((room) => room.electricNew < room.electricOld || room.waterNew < room.waterOld);
+    }
+
+    function saveCurrentPeriodSilently(alreadySynced = false) {
+      if (!currentData || !currentPeriod) return false;
+
+      if (!alreadySynced) syncRoomsFromTable();
+      collectConfigFromForm();
+
+      if (hasInvalidReadings()) {
+        renderRoomsTable();
+        setAutosaveStatus("Chưa lưu: có chỉ số mới nhỏ hơn chỉ số cũ");
+        return false;
+      }
+
+      const monthlyData = getMonthlyDataMap();
+      monthlyData[currentPeriod] = cloneData(currentData);
+      setMonthlyDataMap(monthlyData);
+      setAutosaveStatus("Đã tự động lưu " + currentPeriod);
+      return true;
+    }
+
+    function scheduleAutosave(alreadySynced = false) {
+      window.clearTimeout(autosaveTimer);
+      setAutosaveStatus("Đang chờ tự động lưu...");
+      autosaveTimer = window.setTimeout(() => saveCurrentPeriodSilently(alreadySynced), 400);
+    }
+
+    function loadPeriod(period, forceReset) {
+      if (!period) {
+        showMessage("Hãy chọn tháng cần tính tiền.", "warning");
+        return;
+      }
+
+      const defaults = ensureDefaults();
+      renderDefaultPeopleEditor(defaults);
+
+      const monthlyData = getMonthlyDataMap();
+      if (forceReset && monthlyData[period]?.isFinalized) {
+        currentPeriod = period;
+        currentData = normalizeMonthData(period, monthlyData[period]);
+        fillConfigForm(currentData.config);
+        renderRoomsTable();
+        els.periodCaption.textContent = formatPeriodLabel(period);
+        setAutosaveStatus("Tháng " + period + " đã hoàn tất");
+        showMessage("Tháng " + period + " đã hoàn tất nên không thể khởi tạo lại từ mặc định.", "warning");
+        return;
+      }
+
+      const rawData = !forceReset && monthlyData[period] ? monthlyData[period] : null;
+      currentPeriod = period;
+      currentData = normalizeMonthData(period, rawData || createMonthDataFromDefaults(period, defaults));
+
+      fillConfigForm(currentData.config);
+      renderRoomsTable();
+      els.periodCaption.textContent = formatPeriodLabel(period);
+      setAutosaveStatus("Đã tải dữ liệu " + period);
+
+      if (rawData && !forceReset) {
+        showMessage("Đã tải dữ liệu đã lưu cho " + period + ".", "success");
+      } else if (forceReset) {
+        saveCurrentPeriodSilently();
+        showMessage("Đã khởi tạo lại dữ liệu " + period + " từ cấu hình mặc định.", "info");
+      } else {
+        saveCurrentPeriodSilently();
+        showMessage("Chưa có dữ liệu cho " + period + ". Hệ thống đã tạo mới từ mặc định.", "info");
+      }
+    }
+
+    function saveCurrentPeriod() {
+      if (!currentData || !currentPeriod) {
+        showMessage("Hãy chọn tháng trước khi lưu.", "warning");
+        return;
+      }
+
+      syncRoomsFromTable();
+      collectConfigFromForm();
+
+      if (hasInvalidReadings()) {
+        renderRoomsTable();
+        showMessage("Không thể lưu vì có phòng có chỉ số mới nhỏ hơn chỉ số cũ.", "danger");
+        return;
+      }
+
+      const monthlyData = getMonthlyDataMap();
+      monthlyData[currentPeriod] = cloneData(currentData);
+      setMonthlyDataMap(monthlyData);
+      renderRoomsTable();
+      showMessage("Đã lưu dữ liệu tháng " + currentPeriod + " vào Local Storage.", "success");
+    }
+
+    function toggleFinalizedCurrentMonth() {
+      if (!currentData || !currentPeriod) {
+        showMessage("Hãy chọn tháng trước khi đổi trạng thái hoàn tất.", "warning");
+        return;
+      }
+
+      if (currentData.isFinalized) {
+        currentData.isFinalized = false;
+        saveCurrentPeriodSilently(true);
+        renderRoomsTable();
+        showMessage("Đã mở lại tháng " + currentPeriod + ". Bạn có thể khởi tạo lại từ mặc định nếu cần.", "success");
+        return;
+      }
+
+      syncRoomsFromTable();
+      collectConfigFromForm();
+
+      if (hasInvalidReadings()) {
+        renderRoomsTable();
+        showMessage("Không thể hoàn tất vì có phòng có chỉ số mới nhỏ hơn chỉ số cũ.", "danger");
+        return;
+      }
+
+      currentData.isFinalized = true;
+      saveCurrentPeriodSilently(true);
+      renderRoomsTable();
+      showMessage("Đã hoàn tất tháng " + currentPeriod + ". Tháng này sẽ không bị khởi tạo lại từ mặc định.", "success");
+    }
+
+    function exportAllData() {
+      if (currentData && currentPeriod) {
+        saveCurrentPeriodSilently();
+      }
+
+      const exportPayload = {
+        app: "rental-room-cost",
+        version: 2,
+        exportedAt: new Date().toISOString(),
+        defaults: ensureDefaults(),
+        monthlyData: getMonthlyDataMap()
+      };
+      const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "du-lieu-phong-tro-toan-bo.json";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showMessage("Đã xuất toàn bộ dữ liệu.", "success");
+    }
+
+    function normalizeImportedDataPayload(payload) {
+      if (!payload || typeof payload !== "object") return null;
+
+      const monthlySource = payload.monthlyData && typeof payload.monthlyData === "object"
+        ? payload.monthlyData
+        : null;
+
+      if (!monthlySource) return null;
+
+      const normalizedMonthlyData = {};
+      Object.entries(monthlySource).forEach(([period, monthData]) => {
+        if (!period || !monthData || typeof monthData !== "object") return;
+        if (!monthData.rooms || !monthData.config) return;
+        normalizedMonthlyData[period] = normalizeMonthData(period, {
+          ...monthData,
+          period
+        });
+      });
+
+      return {
+        defaults: payload.defaults ? normalizeDefaults(payload.defaults) : null,
+        monthlyData: normalizedMonthlyData
+      };
+    }
+
+    function importDataFromFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        try {
+          const payload = JSON.parse(reader.result);
+          const importedData = normalizeImportedDataPayload(payload);
+
+          if (!importedData || Object.keys(importedData.monthlyData).length === 0) {
+            showMessage("File import không đúng định dạng dữ liệu.", "danger");
+            return;
+          }
+
+          const monthlyData = getMonthlyDataMap();
+          const importedPeriods = Object.keys(importedData.monthlyData);
+          importedPeriods.forEach((period) => {
+            monthlyData[period] = importedData.monthlyData[period];
+          });
+
+          setMonthlyDataMap(monthlyData);
+          if (importedData.defaults) {
+            setStoredJson(STORAGE_KEYS.defaults, importedData.defaults);
+            renderDefaultPeopleEditor(importedData.defaults);
+          }
+
+          if (importedPeriods.includes(getSelectedPeriod())) {
+            loadPeriod(getSelectedPeriod(), false);
+          } else {
+            els.periodInput.value = sortPeriods(importedPeriods)[0];
+            loadPeriod(getSelectedPeriod(), false);
+          }
+
+          showMessage("Đã nhập " + importedPeriods.length + " tháng dữ liệu. Tháng trùng sẽ được ghi đè, tháng thiếu đã được thêm mới.", "success");
+        } catch (error) {
+          showMessage("Không đọc được file JSON. Hãy kiểm tra lại file import.", "danger");
+        } finally {
+          els.importMonthFile.value = "";
+        }
+      };
+
+      reader.readAsText(file);
+    }
+
+    function saveDefaults() {
+      const defaults = ensureDefaults();
+      defaults.baseRoomPrice = Math.max(0, parseNumber(els.baseRoomPrice.value));
+      defaults.trashFee = Math.max(0, parseNumber(els.trashFee.value));
+      defaults.electricPrice = Math.max(0, parseNumber(els.electricPrice.value));
+      defaults.waterQuotaPerPerson = Math.max(0, parseNumber(els.waterQuotaPerPerson.value));
+      defaults.waterPriceNormal = Math.max(0, parseNumber(els.waterPriceNormal.value));
+      defaults.waterPriceExcess = Math.max(0, parseNumber(els.waterPriceExcess.value));
+
+      defaults.rooms = ROOM_IDS.map((roomId) => {
+        const input = document.querySelector(`.default-people-input[data-room-id="${roomId}"]`);
+        return {
+          roomId,
+          defaultPeople: Math.max(0, parseNumber(input ? input.value : 1))
+        };
+      });
+
+      setStoredJson(STORAGE_KEYS.defaults, defaults);
+      renderDefaultPeopleEditor(defaults);
+      showMessage("Đã lưu cấu hình mặc định. Các tháng mới sau này sẽ dùng cấu hình này.", "success");
+    }
+
+    function setInitialPeriod() {
+      const now = new Date();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      els.periodInput.value = now.getFullYear() + "-" + month;
+    }
+
+    function openPeriodPicker() {
+      if (typeof els.periodInput.showPicker === "function") {
+        els.periodInput.showPicker();
+      } else {
+        els.periodInput.focus();
+      }
+    }
+
+    function handleInputEvents() {
+      document.querySelectorAll(".config-input").forEach((input) => {
+        input.addEventListener("change", () => {
+          if (!currentData) return;
+          sanitizeNumericInput(input);
+          collectConfigFromForm();
+          renderRoomsTable();
+          scheduleAutosave();
+        });
+      });
+
+      els.roomsTableBody.addEventListener("change", (event) => {
+        const target = event.target;
+        if (!target.classList.contains("room-field")) return;
+        sanitizeNumericInput(target);
+        const isOldReadingField = target.classList.contains("old-reading-field");
+        syncRoomsFromTable();
+        if (isOldReadingField) keepNewReadingsAtLeastOld();
+        renderRoomsTable();
+        scheduleAutosave(true);
+      });
+    }
+
+    function init() {
+      const defaults = ensureDefaults();
+      renderDefaultPeopleEditor(defaults);
+      setInitialPeriod();
+      loadPeriod(getSelectedPeriod(), false);
+      handleInputEvents();
+
+      els.resetPeriodBtn.addEventListener("click", () => loadPeriod(getSelectedPeriod(), true));
+      els.finalizeMonthBtn.addEventListener("click", toggleFinalizedCurrentMonth);
+      els.exportMonthBtn.addEventListener("click", exportAllData);
+      els.importMonthBtn.addEventListener("click", () => els.importMonthFile.click());
+      els.importMonthFile.addEventListener("change", () => importDataFromFile(els.importMonthFile.files[0]));
+      els.saveDefaultsBtn.addEventListener("click", saveDefaults);
+      els.receiptModal.addEventListener("show.bs.modal", renderReceiptModal);
+      els.receiptRoomSelect.addEventListener("change", renderReceiptPreview);
+      els.periodInput.addEventListener("change", () => {
+        loadPeriod(getSelectedPeriod(), false);
+      });
+      els.periodInput.addEventListener("click", openPeriodPicker);
+    }
+
+    init();
+  </script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+  ></script>
+</body>
+</html>
