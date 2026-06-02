@@ -222,15 +222,15 @@
           <p class="text-uppercase small fw-semibold text-success mb-2">Tool tính tiền trọ</p>
           <h1 class="display-6 fw-bold mb-3">Tính chi phí phòng trọ theo tháng</h1>
           <p class="mb-0 text-secondary">
-            Chọn tháng, nhập chỉ số mới điện nước, hệ thống sẽ tự lấy chỉ số cũ từ lịch sử
-            và lưu dữ liệu vào Local Storage để tra cứu lại sau này.
+            Chọn tháng, nhập chỉ số điện nước, hệ thống tự gợi ý chỉ số cũ từ lịch sử
+            nhưng vẫn cho chỉnh tay khi cần. Dữ liệu lưu local và có thể đồng bộ JSONBin khi hoàn tất tháng.
           </p>
         </div>
         <div class="col-lg-5">
           <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
             <div class="stat-pill">5 phòng mặc định PT-01 đến PT-05</div>
             <div class="stat-pill">Phòng 0 người sẽ không tính phí</div>
-            <div class="stat-pill">Dữ liệu lưu trên trình duyệt</div>
+            <div class="stat-pill">Dữ liệu lưu local, có thể đồng bộ JSONBin</div>
           </div>
         </div>
       </div>
@@ -250,8 +250,10 @@
         <div class="col-md-8 col-lg-9">
           <div class="d-flex flex-wrap gap-2">
             <button id="resetPeriodBtn" class="btn btn-outline-secondary">Khởi tạo lại từ mặc định</button>
+            <!--
             <button id="exportMonthBtn" class="btn btn-outline-primary">Xuất dữ liệu</button>
             <button id="importMonthBtn" class="btn btn-outline-primary">Nhập dữ liệu</button>
+            -->
             <input type="file" id="importMonthFile" class="d-none" accept="application/json,.json">
             <span id="autosaveStatus" class="align-self-center text-secondary small">Tự động tải và lưu dữ liệu</span>
           </div>
@@ -262,43 +264,86 @@
     <div class="row g-4">
       <div class="col-xl-4">
         <div class="panel-card p-4 h-100">
-          <div class="section-title">Cấu hình tháng hiện tại</div>
-          <div class="row g-3">
-            <div class="col-sm-6">
-              <label for="baseRoomPrice" class="form-label">Tiền phòng cơ bản</label>
-              <input type="text" inputmode="numeric" id="baseRoomPrice" class="form-control config-input numeric-input">
+          <div class="d-grid gap-3">
+            <div>
+              <button id="monthConfigToggle" class="btn btn-light border w-100 text-start fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#monthConfigCollapse" aria-expanded="true" aria-controls="monthConfigCollapse">
+                Cấu hình tháng hiện tại
+              </button>
+              <div id="monthConfigCollapse" class="collapse show mt-3">
+                <div class="row g-3">
+                  <div class="col-sm-6">
+                    <label for="baseRoomPrice" class="form-label">Tiền phòng cơ bản</label>
+                    <input type="text" inputmode="numeric" id="baseRoomPrice" class="form-control config-input numeric-input">
+                  </div>
+                  <div class="col-sm-6">
+                    <label for="trashFee" class="form-label">Tiền rác / phòng</label>
+                    <input type="text" inputmode="numeric" id="trashFee" class="form-control config-input numeric-input">
+                  </div>
+                  <div class="col-sm-6">
+                    <label for="electricPrice" class="form-label">Đơn giá điện / kWh</label>
+                    <input type="text" inputmode="numeric" id="electricPrice" class="form-control config-input numeric-input">
+                  </div>
+                  <div class="col-sm-6">
+                    <label for="waterQuotaPerPerson" class="form-label">Định mức nước / người</label>
+                    <input type="text" inputmode="numeric" id="waterQuotaPerPerson" class="form-control config-input numeric-input">
+                  </div>
+                  <div class="col-sm-6">
+                    <label for="waterPriceNormal" class="form-label">Giá nước trong định mức</label>
+                    <input type="text" inputmode="numeric" id="waterPriceNormal" class="form-control config-input numeric-input">
+                  </div>
+                  <div class="col-sm-6">
+                    <label for="waterPriceExcess" class="form-label">Giá nước vượt định mức</label>
+                    <input type="text" inputmode="numeric" id="waterPriceExcess" class="form-control config-input numeric-input">
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="col-sm-6">
-              <label for="trashFee" class="form-label">Tiền rác / phòng</label>
-              <input type="text" inputmode="numeric" id="trashFee" class="form-control config-input numeric-input">
+
+            <div>
+              <button class="btn btn-light border w-100 text-start fw-semibold collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#defaultConfigCollapse" aria-expanded="false" aria-controls="defaultConfigCollapse">
+                Cấu hình mặc định
+              </button>
+              <div id="defaultConfigCollapse" class="collapse mt-3">
+                <div class="section-title mb-3">Số người mặc định từng phòng</div>
+                <div id="defaultPeopleEditor" class="row g-3"></div>
+
+                <div class="alert-inline mt-4 small">
+                  Khi lưu cấu hình mặc định, các tháng mới tạo sau này sẽ lấy giá trị này làm dữ liệu ban đầu.
+                </div>
+                <button id="saveDefaultsBtn" class="btn btn-outline-success w-100 mt-3">Lưu cấu hình mặc định</button>
+              </div>
             </div>
-            <div class="col-sm-6">
-              <label for="electricPrice" class="form-label">Đơn giá điện / kWh</label>
-              <input type="text" inputmode="numeric" id="electricPrice" class="form-control config-input numeric-input">
-            </div>
-            <div class="col-sm-6">
-              <label for="waterQuotaPerPerson" class="form-label">Định mức nước / người</label>
-              <input type="text" inputmode="numeric" id="waterQuotaPerPerson" class="form-control config-input numeric-input">
-            </div>
-            <div class="col-sm-6">
-              <label for="waterPriceNormal" class="form-label">Giá nước trong định mức</label>
-              <input type="text" inputmode="numeric" id="waterPriceNormal" class="form-control config-input numeric-input">
-            </div>
-            <div class="col-sm-6">
-              <label for="waterPriceExcess" class="form-label">Giá nước vượt định mức</label>
-              <input type="text" inputmode="numeric" id="waterPriceExcess" class="form-control config-input numeric-input">
+
+            <div>
+              <button class="btn btn-light border w-100 text-start fw-semibold collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#jsonbinCollapse" aria-expanded="false" aria-controls="jsonbinCollapse">
+                Đồng bộ JSONBin
+              </button>
+              <div id="jsonbinCollapse" class="collapse mt-3">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label for="jsonbinId" class="form-label">Bin ID</label>
+                    <input type="text" id="jsonbinId" class="form-control" autocomplete="off">
+                  </div>
+                  <div class="col-12">
+                    <label for="jsonbinKeyType" class="form-label">Loại key</label>
+                    <select id="jsonbinKeyType" class="form-select">
+                      <option value="access">Access Key</option>
+                      <option value="master">Master Key</option>
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <label for="jsonbinKey" class="form-label">API Key</label>
+                    <input type="password" id="jsonbinKey" class="form-control" autocomplete="off">
+                  </div>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                  <button id="saveJsonbinConfigBtn" type="button" class="btn btn-outline-success">Lưu cấu hình JSONBin</button>
+                  <button id="fetchJsonbinBtn" type="button" class="btn btn-outline-primary">Fetch data</button>
+                </div>
+                <div id="jsonbinStatus" class="text-secondary small mt-2">Chưa cấu hình JSONBin.</div>
+              </div>
             </div>
           </div>
-
-          <hr class="my-4">
-
-          <div class="section-title mb-3">Số người mặc định từng phòng</div>
-          <div id="defaultPeopleEditor" class="row g-3"></div>
-
-          <div class="alert-inline mt-4 small">
-            Khi lưu cấu hình mặc định, các tháng mới tạo sau này sẽ lấy giá trị này làm dữ liệu ban đầu.
-          </div>
-          <button id="saveDefaultsBtn" class="btn btn-outline-success w-100 mt-3">Lưu cấu hình mặc định</button>
         </div>
       </div>
 
@@ -400,15 +445,16 @@
   <script>
     const STORAGE_KEYS = {
       defaults: "rental_defaults",
-      monthlyData: "rental_monthly_data"
+      monthlyData: "rental_monthly_data",
+      jsonbinConfig: "rental_jsonbin_config"
     };
 
     const ROOM_IDS = ["PT-01", "PT-02", "PT-03", "PT-04", "PT-05"];
-    const DEFAULTS_VERSION = "2026-06-user-defaults-v3";
+    const DEFAULTS_VERSION = "2026-06-user-defaults-v4";
 
     const DEFAULTS_FALLBACK = {
       version: DEFAULTS_VERSION,
-      baseRoomPrice: 2200000,
+      baseRoomPrice: 2500000,
       trashFee: 43000,
       electricPrice: 4000,
       waterQuotaPerPerson: 4,
@@ -423,6 +469,11 @@
       ]
     };
 
+    const JSONBIN_DEFAULT_CONFIG = {
+      binId: "6a1eb395da38895dfe7afd68",
+      keyType: "access"
+    };
+
     let currentPeriod = "";
     let currentData = null;
     let autosaveTimer = null;
@@ -430,6 +481,8 @@
     const els = {
       periodInput: document.getElementById("periodInput"),
       periodDisplayInput: document.getElementById("periodDisplayInput"),
+      monthConfigToggle: document.getElementById("monthConfigToggle"),
+      monthConfigCollapse: document.getElementById("monthConfigCollapse"),
       resetPeriodBtn: document.getElementById("resetPeriodBtn"),
       finalizeMonthBtn: document.getElementById("finalizeMonthBtn"),
       exportMonthBtn: document.getElementById("exportMonthBtn"),
@@ -452,7 +505,13 @@
       electricPrice: document.getElementById("electricPrice"),
       waterQuotaPerPerson: document.getElementById("waterQuotaPerPerson"),
       waterPriceNormal: document.getElementById("waterPriceNormal"),
-      waterPriceExcess: document.getElementById("waterPriceExcess")
+      waterPriceExcess: document.getElementById("waterPriceExcess"),
+      jsonbinId: document.getElementById("jsonbinId"),
+      jsonbinKeyType: document.getElementById("jsonbinKeyType"),
+      jsonbinKey: document.getElementById("jsonbinKey"),
+      saveJsonbinConfigBtn: document.getElementById("saveJsonbinConfigBtn"),
+      fetchJsonbinBtn: document.getElementById("fetchJsonbinBtn"),
+      jsonbinStatus: document.getElementById("jsonbinStatus")
     };
 
     function formatCurrency(value) {
@@ -518,6 +577,75 @@
 
     function setStoredJson(key, value) {
       localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function getJsonbinConfig() {
+      const config = getStoredJson(STORAGE_KEYS.jsonbinConfig, {});
+      return {
+        binId: config.binId || JSONBIN_DEFAULT_CONFIG.binId,
+        keyType: config.keyType || JSONBIN_DEFAULT_CONFIG.keyType,
+        apiKey: config.apiKey || config.masterKey || ""
+      };
+    }
+
+    function setJsonbinStatus(message) {
+      els.jsonbinStatus.textContent = message;
+    }
+
+    function fillJsonbinConfigForm() {
+      const config = getJsonbinConfig();
+      els.jsonbinId.value = config.binId;
+      els.jsonbinKeyType.value = config.keyType;
+      els.jsonbinKey.value = config.apiKey;
+      setJsonbinStatus(config.binId && config.apiKey
+        ? "JSONBin đã được cấu hình."
+        : "Chưa cấu hình JSONBin.");
+    }
+
+    function collapsePanelsOnMobile() {
+      if (window.matchMedia("(max-width: 767.98px)").matches) {
+        els.monthConfigCollapse.classList.remove("show");
+        els.monthConfigToggle.classList.add("collapsed");
+        els.monthConfigToggle.setAttribute("aria-expanded", "false");
+      }
+    }
+
+    function saveJsonbinConfig() {
+      const config = {
+        binId: els.jsonbinId.value.trim(),
+        keyType: els.jsonbinKeyType.value,
+        apiKey: els.jsonbinKey.value.trim()
+      };
+      setStoredJson(STORAGE_KEYS.jsonbinConfig, config);
+      setJsonbinStatus(config.binId && config.apiKey
+        ? "Đã lưu cấu hình JSONBin."
+        : "Chưa đủ Bin ID và API Key.");
+    }
+
+    function requireJsonbinConfig() {
+      const config = getJsonbinConfig();
+      if (!config.binId || !config.apiKey) {
+        setJsonbinStatus("Hãy nhập và lưu Bin ID + API Key trước.");
+        showMessage("Hãy cấu hình JSONBin trước khi đồng bộ.", "warning");
+        return null;
+      }
+      return config;
+    }
+
+    function getJsonbinAuthHeader(config) {
+      return config.keyType === "master"
+        ? { "X-Master-Key": config.apiKey }
+        : { "X-Access-Key": config.apiKey };
+    }
+
+    function buildFullDataPayload() {
+      return {
+        app: "rental-room-cost",
+        version: 2,
+        updatedAt: new Date().toISOString(),
+        defaults: ensureDefaults(),
+        monthlyData: getMonthlyDataMap()
+      };
     }
 
     function normalizeDefaults(rawDefaults) {
@@ -1002,7 +1130,7 @@
       showMessage("Đã lưu dữ liệu tháng " + currentPeriod + " vào Local Storage.", "success");
     }
 
-    function toggleFinalizedCurrentMonth() {
+    async function toggleFinalizedCurrentMonth() {
       if (!currentData || !currentPeriod) {
         showMessage("Hãy chọn tháng trước khi đổi trạng thái hoàn tất.", "warning");
         return;
@@ -1028,7 +1156,10 @@
       currentData.isFinalized = true;
       saveCurrentPeriodSilently(true);
       renderRoomsTable();
-      showMessage("Đã hoàn tất tháng " + currentPeriod + ". Tháng này sẽ không bị khởi tạo lại từ mặc định.", "success");
+      const synced = await submitJsonbinData();
+      showMessage(synced
+        ? "Đã hoàn tất tháng " + currentPeriod + " và submit dữ liệu lên JSONBin."
+        : "Đã hoàn tất tháng " + currentPeriod + " ở local. JSONBin chưa đồng bộ được.", synced ? "success" : "warning");
     }
 
     function exportAllData() {
@@ -1057,9 +1188,10 @@
 
     function normalizeImportedDataPayload(payload) {
       if (!payload || typeof payload !== "object") return null;
+      const sourcePayload = payload.record && typeof payload.record === "object" ? payload.record : payload;
 
-      const monthlySource = payload.monthlyData && typeof payload.monthlyData === "object"
-        ? payload.monthlyData
+      const monthlySource = sourcePayload.monthlyData && typeof sourcePayload.monthlyData === "object"
+        ? sourcePayload.monthlyData
         : null;
 
       if (!monthlySource) return null;
@@ -1075,7 +1207,7 @@
       });
 
       return {
-        defaults: payload.defaults ? normalizeDefaults(payload.defaults) : null,
+        defaults: sourcePayload.defaults ? normalizeDefaults(sourcePayload.defaults) : null,
         monthlyData: normalizedMonthlyData
       };
     }
@@ -1123,6 +1255,95 @@
       };
 
       reader.readAsText(file);
+    }
+
+    function applyImportedData(importedData, replaceAll = false) {
+      const monthlyData = replaceAll ? {} : getMonthlyDataMap();
+      const importedPeriods = Object.keys(importedData.monthlyData);
+      importedPeriods.forEach((period) => {
+        monthlyData[period] = importedData.monthlyData[period];
+      });
+
+      setMonthlyDataMap(monthlyData);
+      if (importedData.defaults) {
+        setStoredJson(STORAGE_KEYS.defaults, importedData.defaults);
+        renderDefaultPeopleEditor(importedData.defaults);
+      }
+
+      if (importedPeriods.includes(getSelectedPeriod())) {
+        loadPeriod(getSelectedPeriod(), false);
+      } else if (importedPeriods.length > 0) {
+        els.periodInput.value = sortPeriods(importedPeriods)[0];
+        updatePeriodDisplayInput();
+        loadPeriod(getSelectedPeriod(), false);
+      }
+
+      return importedPeriods.length;
+    }
+
+    async function fetchJsonbinData() {
+      const config = requireJsonbinConfig();
+      if (!config) return;
+
+      setJsonbinStatus("Đang fetch dữ liệu từ JSONBin...");
+
+      try {
+        const response = await fetch("https://api.jsonbin.io/v3/b/" + config.binId + "/latest", {
+          method: "GET",
+          headers: {
+            ...getJsonbinAuthHeader(config),
+            "X-Bin-Meta": "false"
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+
+        const payload = await response.json();
+        const importedData = normalizeImportedDataPayload(payload);
+
+        if (!importedData || Object.keys(importedData.monthlyData).length === 0) {
+          throw new Error("Invalid JSONBin payload");
+        }
+
+        const importedCount = applyImportedData(importedData, true);
+        setJsonbinStatus("Đã fetch " + importedCount + " tháng từ JSONBin.");
+        showMessage("Đã fetch dữ liệu từ JSONBin.", "success");
+      } catch (error) {
+        setJsonbinStatus("Fetch JSONBin thất bại: " + error.message);
+        showMessage("Fetch JSONBin thất bại. Hãy kiểm tra Bin ID, key hoặc mạng.", "danger");
+      }
+    }
+
+    async function submitJsonbinData() {
+      const config = requireJsonbinConfig();
+      if (!config) return false;
+
+      setJsonbinStatus("Đang submit dữ liệu lên JSONBin...");
+
+      try {
+        const response = await fetch("https://api.jsonbin.io/v3/b/" + config.binId, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...getJsonbinAuthHeader(config),
+            "X-Bin-Versioning": "false"
+          },
+          body: JSON.stringify(buildFullDataPayload())
+        });
+
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+
+        setJsonbinStatus("Đã submit dữ liệu lên JSONBin.");
+        return true;
+      } catch (error) {
+        setJsonbinStatus("Submit JSONBin thất bại: " + error.message);
+        showMessage("Đã lưu local, nhưng submit JSONBin thất bại.", "warning");
+        return false;
+      }
     }
 
     function saveDefaults() {
@@ -1188,15 +1409,19 @@
     function init() {
       const defaults = ensureDefaults();
       renderDefaultPeopleEditor(defaults);
+      fillJsonbinConfigForm();
+      collapsePanelsOnMobile();
       setInitialPeriod();
       loadPeriod(getSelectedPeriod(), false);
       handleInputEvents();
 
       els.resetPeriodBtn.addEventListener("click", () => loadPeriod(getSelectedPeriod(), true));
       els.finalizeMonthBtn.addEventListener("click", toggleFinalizedCurrentMonth);
-      els.exportMonthBtn.addEventListener("click", exportAllData);
-      els.importMonthBtn.addEventListener("click", () => els.importMonthFile.click());
+      if (els.exportMonthBtn) els.exportMonthBtn.addEventListener("click", exportAllData);
+      if (els.importMonthBtn) els.importMonthBtn.addEventListener("click", () => els.importMonthFile.click());
       els.importMonthFile.addEventListener("change", () => importDataFromFile(els.importMonthFile.files[0]));
+      els.saveJsonbinConfigBtn.addEventListener("click", saveJsonbinConfig);
+      els.fetchJsonbinBtn.addEventListener("click", fetchJsonbinData);
       els.saveDefaultsBtn.addEventListener("click", saveDefaults);
       els.receiptModal.addEventListener("show.bs.modal", renderReceiptModal);
       els.receiptRoomSelect.addEventListener("change", renderReceiptPreview);

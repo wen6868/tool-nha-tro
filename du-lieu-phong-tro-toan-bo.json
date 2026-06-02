@@ -1,0 +1,92 @@
+{
+  "app": "rental-room-cost",
+  "version": 2,
+  "exportedAt": "2026-06-01T10:04:00.536Z",
+  "defaults": {
+    "version": "2026-06-user-defaults-v2",
+    "baseRoomPrice": 2500000,
+    "trashFee": 43000,
+    "electricPrice": 4000,
+    "waterQuotaPerPerson": 4,
+    "waterPriceNormal": 12000,
+    "waterPriceExcess": 15000,
+    "rooms": [
+      {
+        "roomId": "PT-01",
+        "defaultPeople": 2
+      },
+      {
+        "roomId": "PT-02",
+        "defaultPeople": 2
+      },
+      {
+        "roomId": "PT-03",
+        "defaultPeople": 1
+      },
+      {
+        "roomId": "PT-04",
+        "defaultPeople": 1
+      },
+      {
+        "roomId": "PT-05",
+        "defaultPeople": 3
+      }
+    ]
+  },
+  "monthlyData": {
+    "2026-05": {
+      "period": "2026-05",
+      "isFinalized": true,
+      "config": {
+        "baseRoomPrice": 2500000,
+        "trashFee": 43000,
+        "electricPrice": 4000,
+        "waterQuotaPerPerson": 4,
+        "waterPriceNormal": 12000,
+        "waterPriceExcess": 15000
+      },
+      "rooms": [
+        {
+          "roomId": "PT-01",
+          "people": 2,
+          "electricOld": 3604,
+          "electricNew": 3707,
+          "waterOld": 1090,
+          "waterNew": 1092
+        },
+        {
+          "roomId": "PT-02",
+          "people": 2,
+          "electricOld": 6133,
+          "electricNew": 6186,
+          "waterOld": 758,
+          "waterNew": 763
+        },
+        {
+          "roomId": "PT-03",
+          "people": 1,
+          "electricOld": 3918,
+          "electricNew": 3967,
+          "waterOld": 676,
+          "waterNew": 683
+        },
+        {
+          "roomId": "PT-04",
+          "people": 1,
+          "electricOld": 5818,
+          "electricNew": 5887,
+          "waterOld": 337,
+          "waterNew": 340
+        },
+        {
+          "roomId": "PT-05",
+          "people": 3,
+          "electricOld": 15735,
+          "electricNew": 16157,
+          "waterOld": 1080,
+          "waterNew": 1096
+        }
+      ]
+    }
+  }
+}
